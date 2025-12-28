@@ -1,7 +1,12 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from cinema.views import GenreAPIView, ActorGenericView, CinemaHallViewSet, MovieViewSet
+from cinema.views import (
+    GenreAPIView,
+    ActorGenericView,
+    CinemaHallViewSet,
+    MovieViewSet
+)
 
 app_name = "cinema"
 

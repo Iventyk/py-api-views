@@ -2,8 +2,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
-from rest_framework.viewsets import GenericViewSet
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import (
+    GenericViewSet,
+    ModelViewSet,
+)
 from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import (
     ListModelMixin,
@@ -22,13 +24,8 @@ from cinema.serializers import (
 )
 
 
-class GenreAPIView(APIView):
-    def get(self, request, pk=None):
-        if pk:
-            genre = get_object_or_404(Genre, pk=pk)
-            serializer = GenreSerializer(genre)
-            return Response(serializer.data)
-
+class GenreList(APIView):
+    def get(self, request):
         genres = Genre.objects.all()
         serializer = GenreSerializer(genres, many=True)
         return Response(serializer.data)
@@ -38,6 +35,13 @@ class GenreAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class GenreDetail(APIView):
+    def get(self, request, pk):
+        genre = get_object_or_404(Genre, pk=pk)
+        serializer = GenreSerializer(genre)
+        return Response(serializer.data)
 
     def put(self, request, pk):
         genre = get_object_or_404(Genre, pk=pk)
@@ -59,10 +63,23 @@ class GenreAPIView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class ActorGenericView(
+class ActorList(
     GenericAPIView,
     ListModelMixin,
     CreateModelMixin,
+):
+    queryset = Actor.objects.all()
+    serializer_class = ActorSerializer
+
+    def get(self, request):
+        return self.list(request)
+
+    def post(self, request):
+        return self.create(request)
+
+
+class ActorDetail(
+    GenericAPIView,
     RetrieveModelMixin,
     UpdateModelMixin,
     DestroyModelMixin,
@@ -70,13 +87,8 @@ class ActorGenericView(
     queryset = Actor.objects.all()
     serializer_class = ActorSerializer
 
-    def get(self, request, pk=None):
-        if pk:
-            return self.retrieve(request, pk=pk)
-        return self.list(request)
-
-    def post(self, request):
-        return self.create(request)
+    def get(self, request, pk):
+        return self.retrieve(request, pk=pk)
 
     def put(self, request, pk):
         return self.update(request, pk=pk)
@@ -103,10 +115,3 @@ class CinemaHallViewSet(
 class MovieViewSet(ModelViewSet):
     queryset = Movie.objects.all()
     serializer_class = MovieSerializer
-
-
-ActorList = ActorGenericView
-ActorDetail = ActorGenericView
-
-GenreList = GenreAPIView
-GenreDetail = GenreAPIView
